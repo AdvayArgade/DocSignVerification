@@ -313,7 +313,7 @@ class EmailSender2 {
             compositeMessage = compositeMessage.append(new String("\nFile Hash: " + fileHash));
             compositeMessage = compositeMessage.append(new String("\nYour key: " + publicKey));
             compositeMessage = compositeMessage.append(new String("\nRegards."));
-            message.setText(compositeMessage.toString());
+            
             MimeBodyPart file_attachment = new MimeBodyPart();
             try {
                 file_attachment.attachFile(new File(filepath));
@@ -322,6 +322,9 @@ class EmailSender2 {
             }
             //Actually add the attachment in the mail
             try{
+                MimeBodyPart textPart = new MimeBodyPart();
+                textPart.setText(compositeMessage.toString());
+                multipart.addBodyPart(textPart);
                 multipart.addBodyPart(file_attachment);
             }catch (MessagingException me){
                 System.out.println(me.getMessage());
