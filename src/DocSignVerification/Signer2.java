@@ -23,7 +23,7 @@ class SignerView2 extends JFrame implements ActionListener{
     String signedFilePath, fileText;
     boolean fileread = false;
     static String key;
-    String recipientAddress;
+    String recipientAddress, encryptedHash;
 
     JLabel heading = new JLabel("Signing");
     JButton openFile = new JButton("Open a file");
@@ -181,7 +181,7 @@ class SignerView2 extends JFrame implements ActionListener{
                         return;
                     }
 
-                    if (fileread == false) {
+                    if (!fileread) {
                         JOptionPane.showMessageDialog(this, "Please select a file!",
                                 "Error", JOptionPane.ERROR_MESSAGE);
                         return;
@@ -203,23 +203,30 @@ class SignerView2 extends JFrame implements ActionListener{
                         throw new RuntimeException(ex);
                     }
                     try {
-                        String encryptedHash = rsafe.encryptString(fileHash);
+                        encryptedHash = rsafe.encryptString(fileHash);
                         key = rsafe.publicKey.toString();
+                        System.out.println("Public Key: " + key);
                         System.out.println(encryptedHash);
+                    } catch (Exception ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    try {
+                        System.out.println(rsafe.decryptString(encryptedHash));
                     } catch (Exception ex) {
                         throw new RuntimeException(ex);
                     }
 
 
-                    //-------------actual mail sending--------------
+                //-------------actual mail sending--------------
                     EmailSender2 EmailSender2 = new EmailSender2();
                     String sender_addr_arg = saddress.getText();
                     String verifier_addr_arg = vaddress.getText();
                     try {
                         EmailSender2.send(sender_addr_arg, "fcjbimretuvttjyq",
                                 verifier_addr_arg,
-                                "Please check this file.", "Here is the hash of the file and the key to verify the attached file's integrity."
-                                , signedFilePath, fileHash, key);
+                                "Please check this file.", "Here is the encrypted hash of the file and the key to verify the attached file's integrity.\n"
+                                , signedFilePath, encryptedHash, key);
+
                     } catch (SignerAddressException sae) {
                         JOptionPane.showMessageDialog(this,
                                 "Enter a valid email address for the signer!",
@@ -243,6 +250,10 @@ class SignerView2 extends JFrame implements ActionListener{
 class RSAFileEncryption2 {
     PublicKey publicKey;
     PrivateKey privateKey;
+    String publicKeyStr;
+    public RSAFileEncryption2(String publicKey) {
+        this.publicKeyStr = publicKey;
+    }
     public RSAFileEncryption2() throws Exception {
         // Generate RSA key pair
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -258,7 +269,7 @@ class RSAFileEncryption2 {
 
     public String encryptString(String plaintext) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.ENCRYPT_MODE, publicKey);
+        cipher.init(Cipher.ENCRYPT_MODE, privateKey);
 
         byte[] encryptedBytes = cipher.doFinal(plaintext.getBytes());
 
@@ -267,13 +278,19 @@ class RSAFileEncryption2 {
 
     public String decryptString(String encryptedString) throws Exception {
         Cipher cipher = Cipher.getInstance("RSA");
-        cipher.init(Cipher.DECRYPT_MODE, privateKey);
+        cipher.init(Cipher.DECRYPT_MODE, publicKey);
 
         byte[] encryptedBytes = Base64.getDecoder().decode(encryptedString);
         byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
 
         return new String(decryptedBytes);
     }
+
+//    private PublicKey getPublicKeyFromString(String publicKeyStr) throws Exception {
+//        byte[] publicKeyBytes = Base64.getDecoder().decode(publicKeyStr);
+//        X509EncodedKeySpec publicKeySpec = new X509EncodedKeySpec(publicKeyBytes);
+//        return KeyFactory.getInstance("RSA").generatePublic(publicKeySpec);
+//    }
 }
 
 
@@ -310,10 +327,11 @@ class EmailSender2 {
             message.setSubject(sub);
             //Appending to the message.
             StringBuilder compositeMessage = new StringBuilder(msg);
-            compositeMessage = compositeMessage.append(new String("\nFile Hash: " + fileHash));
-            compositeMessage = compositeMessage.append(new String("\nYour key: " + publicKey));
+            compositeMessage = compositeMessage.append(new String("\nFile Hash: " + fileHash + "\n"));
+            compositeMessage = compositeMessage.append(new String("\nYour key: " + publicKey + "\n"));
             compositeMessage = compositeMessage.append(new String("\nRegards."));
-            
+            //message.setText(compositeMessage.toString());
+
             MimeBodyPart file_attachment = new MimeBodyPart();
             try {
                 file_attachment.attachFile(new File(filepath));
@@ -329,6 +347,7 @@ class EmailSender2 {
             }catch (MessagingException me){
                 System.out.println(me.getMessage());
             }
+
             message.setContent(multipart);
             //send message
             Transport.send(message);
