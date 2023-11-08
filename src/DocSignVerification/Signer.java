@@ -83,6 +83,79 @@ class SignerView extends JFrame implements ActionListener{
         this.add(send);
 
 
+        this.setTitle("Document Signing");
+        this.setSize(500, 600);
+        this.setLayout(new BorderLayout()); // Using BorderLayout for better organization
+        this.getContentPane().setBackground(new Color(225, 241, 255));
+
+        JPanel mainPanel = new JPanel();
+        mainPanel.setLayout(new GridLayout(7, 1, 10, 10)); // Using GridLayout for a consistent layout
+        mainPanel.setBackground(new Color(225, 241, 255));
+
+// Create and configure components
+        JLabel heading = new JLabel("Document Signing");
+        heading.setFont(new Font("Serif", Font.BOLD, 24)); // Change font and style
+        heading.setForeground(new Color(175, 100, 248, 255));
+
+        JPanel openFilePanel = new JPanel();
+        openFilePanel.setBackground(new Color(225, 241, 255));
+        openFile.setFont(new Font("SansSerif", Font.PLAIN, 16)); // Change font
+        openFile.setForeground(new Color(232, 142, 64));
+        openFile.setBackground(new Color(255, 255, 255));
+
+        JPanel selectedFilePanel = new JPanel();
+        selectedFilePanel.setBackground(new Color(225, 241, 255));
+        JLabel selectedFileLabel = new JLabel("Selected File");
+        selectedFileLabel.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        selectedFileLabel.setForeground(new Color(45, 131, 255));
+
+        fileName.setFont(new Font("SansSerif", Font.PLAIN, 13));
+        fileName.setForeground(new Color(45, 131, 255));
+
+
+        JPanel enterSenderAddressPanel = new JPanel();
+        enterSenderAddressPanel.setBackground(new Color(225, 241, 255));
+        JLabel enterSenderAddressLabel = new JLabel("Enter Sender Address");
+        enterSenderAddressLabel.setForeground(new Color(45, 131, 255));
+        enterSenderAddressLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+
+        JPanel enterVerifierAddressPanel = new JPanel();
+        enterVerifierAddressPanel.setBackground(new Color(225, 241, 255));
+        JLabel enterVerifierAddressLabel = new JLabel("Enter Verifier Address");
+        enterVerifierAddressLabel.setFont(new Font("SansSerif", Font.PLAIN, 14));
+        enterVerifierAddressLabel.setForeground(new Color(45, 131, 255));
+
+        JPanel sendPanel = new JPanel();
+        sendPanel.setBackground(new Color(225, 241, 255));
+        send.setBackground(new Color(255, 255, 255));
+        send.setForeground(new Color(232, 142, 64));
+        send.setFont(new Font("SansSerif", Font.PLAIN, 16));
+
+// Add components to panels
+        openFilePanel.add(openFile);
+        selectedFilePanel.add(selectedFileLabel);
+        selectedFilePanel.add(fileName);
+        enterSenderAddressPanel.add(enterSenderAddressLabel);
+        enterSenderAddressPanel.add(saddress);
+        enterVerifierAddressPanel.add(enterVerifierAddressLabel);
+        enterVerifierAddressPanel.add(vaddress);
+        sendPanel.add(send);
+
+// Add panels to the main panel
+        mainPanel.add(heading);
+        mainPanel.add(openFilePanel);
+        mainPanel.add(selectedFilePanel);
+        mainPanel.add(enterSenderAddressPanel);
+        mainPanel.add(enterVerifierAddressPanel);
+        mainPanel.add(sendPanel);
+
+// Add the main panel to the frame
+        this.add(mainPanel, BorderLayout.CENTER);
+
+        this.setVisible(true);
+
+
+
 
         //----------------------File Reading-------------------------
         openFile.addActionListener (new ActionListener() {
@@ -295,6 +368,7 @@ class EmailSender {
             compositeMessage = compositeMessage.append(new String("\nYour key: " + publicKey));
             compositeMessage = compositeMessage.append(new String("\nRegards."));
             message.setText(compositeMessage.toString());
+
             MimeBodyPart file_attachment = new MimeBodyPart();
             try {
                 file_attachment.attachFile(new File(filepath));
@@ -307,9 +381,11 @@ class EmailSender {
             }catch (MessagingException me){
                 System.out.println(me.getMessage());
             }
-            message.setContent(multipart);
+            //message.setContent(multipart);
+            message.setContent(multipart, "text/plain; charset=utf-8");
             //send message
             Transport.send(message);
+
             System.out.println("message sent successfully");
         } catch (MessagingException e) {
             System.out.println(e.getStackTrace() + e.getMessage());

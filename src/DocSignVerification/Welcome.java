@@ -34,7 +34,7 @@ class WelcomeFrame extends JFrame{
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (signer.isSelected()){
-                    new Signer();
+                    new Signer2();
                     dispose();
                 }
                 else if(verifier.isSelected()){

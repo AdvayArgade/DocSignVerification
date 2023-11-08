@@ -6,12 +6,6 @@ import java.security.NoSuchAlgorithmException;
 
 public class MD5FileHash {
     public static String doFinal(String filename) {
-//        if (args.length != 1) {
-//            //System.out.println("Usage: java MD5FileHash <filename>");
-//            return;
-//        }
-
-
         String fileName = filename;
 
         try {
